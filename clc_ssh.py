@@ -8,9 +8,9 @@ from clc import CLCException, APIFailedResponse
 
 CLC_API_V2_USERNAME = ""
 CLC_API_V2_PASSWD = ""
-#CLC_ALIASES = ['wfaq', 'wfaq', 'wfts', 'rnrp', 'wfas', 'wfad']
-CLC_ALIASES = ['wfaq', 'wfad']
-HOSTVAR_POOL_CNT = 25
+CLC_ALIASES = []
+SSH_DIR = ""
+HOSTVAR_POOL_CNT = 100
 
 def main():
     print_ssh_config()
@@ -18,6 +18,7 @@ def main():
 
 def print_ssh_config():
     _set_clc_credentials()
+    myfile = open(SSH_DIR + "/config.new", "a+")
     for alias in CLC_ALIASES:
         clc.ALIAS = alias
 
@@ -29,8 +30,12 @@ def print_ssh_config():
         result['_meta'] = hostvars
 
         for server in hostvars:
-            print server
-            print hostvars[server]['ipAddress']
+            myfile.write("Host " + server + "\n")
+            myfile.write("\tUser root\n")
+            myfile.write("\tHostname " + hostvars[server]['ipAddress'] + "\n")
+            myfile.write("\tPort 22\n")
+    os.rename(SSH_DIR + "/config.new", SSH_DIR + "/config")
+
 
 #    print(json.dumps(hostvars, indent=2, sort_keys=True))
 
@@ -223,6 +228,8 @@ def _set_clc_credentials():
     elif v2_api_username and v2_api_passwd:
         clc.v2.SetCredentials(api_username=v2_api_username,
                               api_passwd=v2_api_passwd)
+
+    clc.v2.API._Login()
 
 if __name__ == '__main__':
     main()
